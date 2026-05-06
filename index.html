@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="index.css" />
+    <title>Controle IOT</title>
+  </head>
+  <body>
+    <header class="d-flex justify-content-between align-items-center">
+      <div class="tt-header">
+        <h1>CONTROLE DE ILUMINAÇÃO</h1>
+        <p>Sistema IOT com ESP32</p>
+      </div>
+      <div class="status-esp32">
+        <h2>ESP32: <span>CONECTADO</span></h2>
+      </div>
+    </header>
+    <main
+      class="d-flex flex-column flex-lg-row align-items-center justify-content-center"
+    >
+      <section class="lamp l1 d-flex flex-column align-items-center">
+        <h2 class="tt-lamp1">Lâmpada 1:</h2>
+        <div class="toggle d-flex align-items-center justify-content-between">
+          <h1>ON</h1>
+          <h1>OFF</h1>
+          <div
+            class="key-toggle d-flex justify-content-center align-items-center"
+          ></div>
+        </div>
+        <div class="timer d-flex justify-content-between align-items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-stopwatch"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8.5 5.6a.5.5 0 1 0-1 0v2.9h-3a.5.5 0 0 0 0 1H8a.5.5 0 0 0 .5-.5z"
+            />
+            <path
+              d="M6.5 1A.5.5 0 0 1 7 .5h2a.5.5 0 0 1 0 1v.57c1.36.196 2.594.78 3.584 1.64l.012-.013.354-.354-.354-.353a.5.5 0 0 1 .707-.708l1.414 1.415a.5.5 0 1 1-.707.707l-.353-.354-.354.354-.013.012A7 7 0 1 1 7 2.071V1.5a.5.5 0 0 1-.5-.5M8 3a6 6 0 1 0 .001 12A6 6 0 0 0 8 3"
+            />
+          </svg>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>10s</p>
+            <div class="led-timer"></div>
+          </button>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>30s</p>
+            <div class="led-timer"></div>
+          </button>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>1min</p>
+            <div class="led-timer"></div>
+          </button>
+        </div>
+      </section>
+      <section class="lamp l2 d-flex flex-column align-items-center">
+        <h2 class="tt-lamp1">Lâmpada 2:</h2>
+        <div class="toggle d-flex align-items-center justify-content-between">
+          <h1>ON</h1>
+          <h1>OFF</h1>
+          <div
+            class="key-toggle d-flex justify-content-center align-items-center"
+          ></div>
+        </div>
+        <div class="timer d-flex justify-content-between align-items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-stopwatch"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M8.5 5.6a.5.5 0 1 0-1 0v2.9h-3a.5.5 0 0 0 0 1H8a.5.5 0 0 0 .5-.5z"
+            />
+            <path
+              d="M6.5 1A.5.5 0 0 1 7 .5h2a.5.5 0 0 1 0 1v.57c1.36.196 2.594.78 3.584 1.64l.012-.013.354-.354-.354-.353a.5.5 0 0 1 .707-.708l1.414 1.415a.5.5 0 1 1-.707.707l-.353-.354-.354.354-.013.012A7 7 0 1 1 7 2.071V1.5a.5.5 0 0 1-.5-.5M8 3a6 6 0 1 0 .001 12A6 6 0 0 0 8 3"
+            />
+          </svg>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>10s</p>
+            <div class="led-timer"></div>
+          </button>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>30s</p>
+            <div class="led-timer"></div>
+          </button>
+          <button
+            type="button"
+            class="btn-timer d-flex flex-column align-items-center justify-content-center"
+          >
+            <p>1min</p>
+            <div class="led-timer"></div>
+          </button>
+        </div>
+      </section>
+    </main>
+  </body>
+  <script>
+    // Para cada seção de lâmpada
+    const lampSections = document.querySelectorAll(".lamp");
+
+    lampSections.forEach((section) => {
+      // Toggle independente para cada lâmpada
+      const toggle = section.querySelector(".toggle");
+      if (toggle) {
+        toggle.addEventListener("click", () => {
+          toggle.classList.toggle("toggle-ativo");
+        });
+      }
+
+      // Botões de timer independentes para cada lâmpada
+      const timerButtons = section.querySelectorAll(".btn-timer");
+      timerButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const led = button.querySelector(".led-timer");
+          const isActive = led.classList.contains("ativo");
+
+          // Remove apenas os LEDs ativos da mesma seção
+          section.querySelectorAll(".led-timer.ativo").forEach((activeLed) => {
+            activeLed.classList.remove("ativo");
+          });
+
+          if (!isActive) {
+            led.classList.add("ativo");
+          }
+        });
+      });
+    });
+  </script>
+</html>

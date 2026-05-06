@@ -1,0 +1,198 @@
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+body {
+  font-family: "Poppins", sans-serif;
+  background-color: #6b6b6b;
+}
+
+header {
+  height: 10vh;
+  padding-inline: 15px !important;
+  color: white;
+
+  .tt-header {
+    h1 {
+      font-weight: bold;
+      font-size: 1rem;
+    }
+    p {
+      font-weight: 200;
+      font-size: 0.8rem;
+    }
+  }
+
+  .status-esp32 {
+    h2 {
+      font-size: 1rem;
+      font-weight: 200;
+
+      span {
+        font-weight: 500;
+        color: #a0ffa2;
+      }
+    }
+  }
+}
+
+main {
+  .l1 {
+    border-bottom: 1px solid white;
+  }
+}
+
+.lamp {
+  padding-block: 5vh !important;
+  gap: 25px;
+
+  h2 {
+    font-weight: bold;
+    color: white;
+  }
+  .toggle {
+    background-color: #d9d9d9;
+    width: 80vw;
+    max-width: 320px;
+    height: 160px;
+    position: relative;
+    border-radius: 100px;
+    padding-inline: 40px !important;
+    box-shadow: inset 0 4px 20px #00000073;
+    transition:
+      background-color 200ms ease,
+      box-shadow 200ms ease;
+
+    h1 {
+      font-size: 3.5rem;
+      font-weight: bold;
+      color: transparent;
+      background-color: #7a7a7a;
+      text-shadow: 0 3px 4px rgba(223, 223, 223, 0.8);
+      -webkit-background-clip: text;
+    }
+
+    .key-toggle {
+      background-color: #eaeaea;
+      background-image: url("Frame 1.svg");
+      background-size: 55%;
+      background-position: center;
+      background-repeat: no-repeat;
+      position: absolute;
+      width: 135px;
+      height: 135px;
+      top: calc(50% - 67.5px);
+      left: 12.5px;
+      border-radius: 100px;
+      box-shadow:
+        2px 2px 10px #0000007e,
+        inset -1px -6px 7.5px rgba(0, 0, 0, 0.226),
+        inset 3px 8px 5px white;
+      transition:
+        left 300ms ease,
+        box-shadow 250ms ease,
+        background-color 250ms ease;
+    }
+  }
+
+  .toggle.toggle-ativo {
+    background-color: #1bca32;
+    box-shadow: inset 5px 0px 10px #ffffff60;
+
+    h1 {
+      color: white;
+      text-shadow: 0 0 40px rgb(255, 255, 255);
+    }
+
+    .key-toggle {
+      background-image: url("Frame 2.svg");
+      left: calc(100% - 147.5px);
+      box-shadow:
+        5px 2px 10px #00000025,
+        inset -7px 0px 7.5px rgba(0, 0, 0, 0.151),
+        inset 10px 0px 4px white;
+    }
+  }
+
+  .timer {
+    width: 70vw;
+    max-width: 280px;
+
+    svg {
+      color: rgb(255, 255, 255);
+    }
+
+    .btn-timer {
+      position: relative;
+      background-color: #eaeaea;
+      width: 55px;
+      height: 50px;
+      border: none;
+      border-radius: 7px;
+      box-shadow:
+        0 0 5px rgba(0, 0, 0, 0.411),
+        inset 0 -5px 5px rgba(0, 0, 0, 0.418),
+        inset 0 4px 5px white;
+      transition: all ease 200ms;
+
+      p {
+        font-size: 1rem;
+        font-weight: bold;
+        color: transparent;
+        background-color: #424242;
+        text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8);
+        -webkit-background-clip: text;
+        transform: translateY(-3px);
+      }
+
+      .led-timer {
+        position: absolute;
+        top: 68%;
+        background-color: #7a7a7a;
+        width: 35px;
+        height: 6px;
+        border-radius: 4px;
+      }
+
+      .led-timer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: white;
+        width: 13px;
+        height: 2px;
+        border-radius: 2px;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    .btn-timer:active {
+      transform: scale(0.95);
+      background-color: #cecece;
+    }
+
+    .btn-timer .led-timer.ativo {
+      background-color: #1bca32;
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  header{
+    padding-inline: 10vw !important;
+  }
+  main {
+    height: 90vh;
+    .l1 {
+      border-bottom: 0px;
+      border-right: 1px solid white;
+    }
+  }
+
+  .lamp {
+    padding: 0px 10vw !important;
+  }
+}
