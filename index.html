@@ -130,36 +130,5 @@
       </section>
     </main>
   </body>
-  <script>
-    // Para cada seção de lâmpada
-    const lampSections = document.querySelectorAll(".lamp");
-
-    lampSections.forEach((section) => {
-      // Toggle independente para cada lâmpada
-      const toggle = section.querySelector(".toggle");
-      if (toggle) {
-        toggle.addEventListener("click", () => {
-          toggle.classList.toggle("toggle-ativo");
-        });
-      }
-
-      // Botões de timer independentes para cada lâmpada
-      const timerButtons = section.querySelectorAll(".btn-timer");
-      timerButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          const led = button.querySelector(".led-timer");
-          const isActive = led.classList.contains("ativo");
-
-          // Remove apenas os LEDs ativos da mesma seção
-          section.querySelectorAll(".led-timer.ativo").forEach((activeLed) => {
-            activeLed.classList.remove("ativo");
-          });
-
-          if (!isActive) {
-            led.classList.add("ativo");
-          }
-        });
-      });
-    });
-  </script>
+  <script type="module" src="index.js"></script>
 </html>
