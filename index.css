@@ -180,6 +180,18 @@ main {
   }
 }
 
+.main-disabled {
+
+  opacity: 0.4;
+
+  pointer-events: none;
+
+  filter: grayscale(1);
+
+  transition: 0.3s;
+
+}
+
 @media (min-width: 992px) {
   header{
     padding-inline: 10vw !important;

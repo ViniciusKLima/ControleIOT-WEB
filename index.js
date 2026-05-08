@@ -6,7 +6,7 @@ import {
   ref,
   set,
   onValue,
-  get
+  get,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // =========================
@@ -20,7 +20,7 @@ const firebaseConfig = {
   projectId: "controleiot-web",
   storageBucket: "controleiot-web.firebasestorage.app",
   messagingSenderId: "730183038031",
-  appId: "1:730183038031:web:c6a8b0d818de96bb84a63a"
+  appId: "1:730183038031:web:c6a8b0d818de96bb84a63a",
 };
 
 // =========================
@@ -35,9 +35,22 @@ const db = getDatabase(app);
 // ELEMENTOS
 // =========================
 
+const main = document.querySelector("main");
+
 const lampSections = document.querySelectorAll(".lamp");
 
 const statusESP = document.querySelector(".status-esp32 span");
+
+// =========================
+// STATUS INICIAL
+// =========================
+
+// começa SEMPRE desconectado
+statusESP.textContent = "DESCONECTADO";
+
+statusESP.style.color = "#ff3b3b";
+
+main.classList.add("main-disabled");
 
 // =========================
 // STATUS ESP32
@@ -45,40 +58,74 @@ const statusESP = document.querySelector(".status-esp32 span");
 
 window.lastESPUpdate = 0;
 
-onValue(ref(db, "lastSeen"), async (snapshot) => {
+// escuta heartbeat do ESP
+onValue(ref(db, "lastSeen"), (snapshot) => {
 
   const value = snapshot.val();
 
-  if (value) {
+  if (!value) return;
 
-    window.lastESPUpdate = Date.now();
+  // diferença entre agora e último heartbeat
+  const diff = Date.now() - value;
 
-    // marca online
-    await set(ref(db, "espOnline"), true);
+  // heartbeat recente
+  if (diff <= 5000) {
+
+    window.lastESPUpdate = value;
+
+    statusESP.textContent = "CONECTADO";
+
+    statusESP.style.color = "#00ff88";
+
+    main.classList.remove("main-disabled");
 
   }
 
 });
 
-// verifica conexão
+// verificação contínua
 setInterval(async () => {
+
+  // nunca recebeu heartbeat
+  if (!window.lastESPUpdate) {
+
+    statusESP.textContent = "DESCONECTADO";
+
+    statusESP.style.color = "#ff3b3b";
+
+    main.classList.add("main-disabled");
+
+    await set(ref(db, "espOnline"), false);
+
+    return;
+
+  }
 
   const diff = Date.now() - window.lastESPUpdate;
 
+  // offline
   if (diff > 5000) {
 
     statusESP.textContent = "DESCONECTADO";
 
     statusESP.style.color = "#ff3b3b";
 
-    // marca offline
+    main.classList.add("main-disabled");
+
     await set(ref(db, "espOnline"), false);
 
-  } else {
+  }
+
+  // online
+  else {
 
     statusESP.textContent = "CONECTADO";
 
     statusESP.style.color = "#00ff88";
+
+    main.classList.remove("main-disabled");
+
+    await set(ref(db, "espOnline"), true);
 
   }
 
@@ -166,7 +213,7 @@ lampSections.forEach((section, index) => {
 
       });
 
-      // se clicou no mesmo
+      // clicou no mesmo
       if (alreadyActive) {
 
         await set(ref(db, `lamp${lampId}Timer`), 0);
