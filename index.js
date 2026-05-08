@@ -45,7 +45,6 @@ const statusESP = document.querySelector(".status-esp32 span");
 // STATUS INICIAL
 // =========================
 
-// começa SEMPRE desconectado
 statusESP.textContent = "DESCONECTADO";
 
 statusESP.style.color = "#ff3b3b";
@@ -58,66 +57,26 @@ main.classList.add("main-disabled");
 
 window.lastESPUpdate = 0;
 
-// escuta heartbeat do ESP
+// heartbeat
 onValue(ref(db, "lastSeen"), (snapshot) => {
 
   const value = snapshot.val();
 
   if (!value) return;
 
-  // diferença entre agora e último heartbeat
-  const diff = Date.now() - value;
-
-  // heartbeat recente
-  if (diff <= 5000) {
-
-    window.lastESPUpdate = value;
-
-    statusESP.textContent = "CONECTADO";
-
-    statusESP.style.color = "#00ff88";
-
-    main.classList.remove("main-disabled");
-
-  }
+  window.lastESPUpdate = value;
 
 });
 
-// verificação contínua
-setInterval(async () => {
+// verifica conexão
+setInterval(() => {
 
-  // nunca recebeu heartbeat
-  if (!window.lastESPUpdate) {
+  const now = Date.now();
 
-    statusESP.textContent = "DESCONECTADO";
+  const diff = now - window.lastESPUpdate;
 
-    statusESP.style.color = "#ff3b3b";
-
-    main.classList.add("main-disabled");
-
-    await set(ref(db, "espOnline"), false);
-
-    return;
-
-  }
-
-  const diff = Date.now() - window.lastESPUpdate;
-
-  // offline
-  if (diff > 5000) {
-
-    statusESP.textContent = "DESCONECTADO";
-
-    statusESP.style.color = "#ff3b3b";
-
-    main.classList.add("main-disabled");
-
-    await set(ref(db, "espOnline"), false);
-
-  }
-
-  // online
-  else {
+  // conectado
+  if (diff <= 5000) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -125,7 +84,16 @@ setInterval(async () => {
 
     main.classList.remove("main-disabled");
 
-    await set(ref(db, "espOnline"), true);
+  }
+
+  // desconectado
+  else {
+
+    statusESP.textContent = "DESCONECTADO";
+
+    statusESP.style.color = "#ff3b3b";
+
+    main.classList.add("main-disabled");
 
   }
 
