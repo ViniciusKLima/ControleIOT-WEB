@@ -43,25 +43,40 @@ const statusESP = document.querySelector(".status-esp32 span");
 // STATUS ESP32
 // =========================
 
-onValue(ref(db, "espOnline"), (snapshot) => {
+window.lastESPUpdate = 0;
 
-  const online = snapshot.val();
+onValue(ref(db, "lastSeen"), (snapshot) => {
 
-  if (online) {
+  const value = snapshot.val();
 
-    statusESP.textContent = "CONECTADO";
+  if (value) {
 
-    statusESP.style.color = "#00ff88";
+    window.lastESPUpdate = Date.now();
 
-  } else {
+  }
+
+});
+
+// verifica conexão
+setInterval(() => {
+
+  const diff = Date.now() - window.lastESPUpdate;
+
+  if (diff > 5000) {
 
     statusESP.textContent = "DESCONECTADO";
 
     statusESP.style.color = "#ff3b3b";
 
+  } else {
+
+    statusESP.textContent = "CONECTADO";
+
+    statusESP.style.color = "#00ff88";
+
   }
 
-});
+}, 1000);
 
 // =========================
 // LÂMPADAS
@@ -76,7 +91,7 @@ lampSections.forEach((section, index) => {
   const timerButtons = section.querySelectorAll(".btn-timer");
 
   // =========================
-  // CLICK TOGGLE
+  // TOGGLE CLICK
   // =========================
 
   toggle.addEventListener("click", async () => {
@@ -89,10 +104,9 @@ lampSections.forEach((section, index) => {
 
     const newState = !currentState;
 
-    // Atualiza lâmpada
     await set(lampRef, newState);
 
-    // Se desligar -> remove timer
+    // desligou -> remove timer
     if (!newState) {
 
       await set(ref(db, `lamp${lampId}Timer`), 0);
@@ -117,7 +131,6 @@ lampSections.forEach((section, index) => {
 
       toggle.classList.remove("toggle-ativo");
 
-      // remove leds timer
       section.querySelectorAll(".led-timer").forEach((led) => {
 
         led.classList.remove("ativo");
@@ -147,7 +160,7 @@ lampSections.forEach((section, index) => {
 
       });
 
-      // desativa se clicar no mesmo
+      // se clicou no mesmo
       if (alreadyActive) {
 
         await set(ref(db, `lamp${lampId}Timer`), 0);
@@ -156,10 +169,8 @@ lampSections.forEach((section, index) => {
 
       }
 
-      // ativa visual
       led.classList.add("ativo");
 
-      // texto botão
       const text = button.querySelector("p").textContent;
 
       let seconds = 0;
@@ -170,7 +181,6 @@ lampSections.forEach((section, index) => {
 
       if (text === "1min") seconds = 60;
 
-      // envia timer
       await set(ref(db, `lamp${lampId}Timer`), seconds);
 
     });
@@ -185,14 +195,11 @@ lampSections.forEach((section, index) => {
 
     const value = snapshot.val();
 
-    // remove todos
     section.querySelectorAll(".led-timer").forEach((led) => {
 
       led.classList.remove("ativo");
 
     });
-
-    // ativa correspondente
 
     if (value === 10) {
 
