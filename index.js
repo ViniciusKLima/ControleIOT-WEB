@@ -45,7 +45,7 @@ const statusESP = document.querySelector(".status-esp32 span");
 
 window.lastESPUpdate = 0;
 
-onValue(ref(db, "lastSeen"), (snapshot) => {
+onValue(ref(db, "lastSeen"), async (snapshot) => {
 
   const value = snapshot.val();
 
@@ -53,12 +53,15 @@ onValue(ref(db, "lastSeen"), (snapshot) => {
 
     window.lastESPUpdate = Date.now();
 
+    // marca online
+    await set(ref(db, "espOnline"), true);
+
   }
 
 });
 
 // verifica conexão
-setInterval(() => {
+setInterval(async () => {
 
   const diff = Date.now() - window.lastESPUpdate;
 
@@ -67,6 +70,9 @@ setInterval(() => {
     statusESP.textContent = "DESCONECTADO";
 
     statusESP.style.color = "#ff3b3b";
+
+    // marca offline
+    await set(ref(db, "espOnline"), false);
 
   } else {
 
