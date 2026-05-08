@@ -5,7 +5,8 @@ import {
   getDatabase,
   ref,
   set,
-  onValue
+  onValue,
+  get
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // =========================
@@ -23,10 +24,11 @@ const firebaseConfig = {
 };
 
 // =========================
-// INICIALIZA FIREBASE
+// FIREBASE
 // =========================
 
 const app = initializeApp(firebaseConfig);
+
 const db = getDatabase(app);
 
 // =========================
@@ -48,11 +50,13 @@ onValue(ref(db, "espOnline"), (snapshot) => {
   if (online) {
 
     statusESP.textContent = "CONECTADO";
+
     statusESP.style.color = "#00ff88";
 
   } else {
 
     statusESP.textContent = "DESCONECTADO";
+
     statusESP.style.color = "#ff3b3b";
 
   }
@@ -72,35 +76,33 @@ lampSections.forEach((section, index) => {
   const timerButtons = section.querySelectorAll(".btn-timer");
 
   // =========================
-  // TOGGLE CLICK
+  // CLICK TOGGLE
   // =========================
 
   toggle.addEventListener("click", async () => {
 
     const lampRef = ref(db, `lamp${lampId}`);
 
-    onValue(lampRef, async (snapshot) => {
+    const snapshot = await get(lampRef);
 
-      const currentState = snapshot.val();
+    const currentState = snapshot.val();
 
-      const newState = !currentState;
+    const newState = !currentState;
 
-      // Atualiza estado da lâmpada
-      await set(lampRef, newState);
+    // Atualiza lâmpada
+    await set(lampRef, newState);
 
-      // Se desligou -> remove timer
-      if (!newState) {
+    // Se desligar -> remove timer
+    if (!newState) {
 
-        await set(ref(db, `lamp${lampId}Timer`), 0);
+      await set(ref(db, `lamp${lampId}Timer`), 0);
 
-      }
-
-    }, { onlyOnce: true });
+    }
 
   });
 
   // =========================
-  // SINCRONIZA TOGGLE VISUAL
+  // SINCRONIZA TOGGLE
   // =========================
 
   onValue(ref(db, `lamp${lampId}`), (snapshot) => {
@@ -115,9 +117,11 @@ lampSections.forEach((section, index) => {
 
       toggle.classList.remove("toggle-ativo");
 
-      // Remove LEDs dos timers
+      // remove leds timer
       section.querySelectorAll(".led-timer").forEach((led) => {
+
         led.classList.remove("ativo");
+
       });
 
     }
@@ -125,7 +129,7 @@ lampSections.forEach((section, index) => {
   });
 
   // =========================
-  // TIMER BUTTONS
+  // BOTÕES TIMER
   // =========================
 
   timerButtons.forEach((button) => {
@@ -136,12 +140,14 @@ lampSections.forEach((section, index) => {
 
       const alreadyActive = led.classList.contains("ativo");
 
-      // Remove todos
+      // remove todos
       section.querySelectorAll(".led-timer").forEach((l) => {
+
         l.classList.remove("ativo");
+
       });
 
-      // Se clicou no mesmo -> desativa timer
+      // desativa se clicar no mesmo
       if (alreadyActive) {
 
         await set(ref(db, `lamp${lampId}Timer`), 0);
@@ -150,19 +156,21 @@ lampSections.forEach((section, index) => {
 
       }
 
-      // Ativa visual
+      // ativa visual
       led.classList.add("ativo");
 
-      // Pega texto do botão
+      // texto botão
       const text = button.querySelector("p").textContent;
 
       let seconds = 0;
 
       if (text === "10s") seconds = 10;
+
       if (text === "30s") seconds = 30;
+
       if (text === "1min") seconds = 60;
 
-      // Envia pro Firebase
+      // envia timer
       await set(ref(db, `lamp${lampId}Timer`), seconds);
 
     });
@@ -177,12 +185,15 @@ lampSections.forEach((section, index) => {
 
     const value = snapshot.val();
 
-    // Remove todos
+    // remove todos
     section.querySelectorAll(".led-timer").forEach((led) => {
+
       led.classList.remove("ativo");
+
     });
 
-    // Ativa correto
+    // ativa correspondente
+
     if (value === 10) {
 
       timerButtons[0]
