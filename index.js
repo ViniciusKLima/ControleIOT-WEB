@@ -55,28 +55,42 @@ main.classList.add("main-disabled");
 // STATUS ESP32
 // =========================
 
-window.lastESPUpdate = 0;
+// guarda último heartbeat
+let lastESPUpdate = 0;
 
-// heartbeat
+// escuta heartbeat do ESP
 onValue(ref(db, "lastSeen"), (snapshot) => {
 
   const value = snapshot.val();
 
   if (!value) return;
 
-  window.lastESPUpdate = value;
+  lastESPUpdate = value;
 
 });
 
 // verifica conexão
 setInterval(() => {
 
+  // nunca recebeu heartbeat
+  if (!lastESPUpdate) {
+
+    statusESP.textContent = "DESCONECTADO";
+
+    statusESP.style.color = "#ff3b3b";
+
+    main.classList.add("main-disabled");
+
+    return;
+
+  }
+
   const now = Date.now();
 
-  const diff = now - window.lastESPUpdate;
+  const diff = now - lastESPUpdate;
 
-  // conectado
-  if (diff <= 5000) {
+  // tolerância maior pra evitar bug em celular lento
+  if (diff <= 10000) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -84,10 +98,7 @@ setInterval(() => {
 
     main.classList.remove("main-disabled");
 
-  }
-
-  // desconectado
-  else {
+  } else {
 
     statusESP.textContent = "DESCONECTADO";
 
@@ -97,7 +108,7 @@ setInterval(() => {
 
   }
 
-}, 1000);
+}, 2000);
 
 // =========================
 // LÂMPADAS
@@ -116,6 +127,9 @@ lampSections.forEach((section, index) => {
   // =========================
 
   toggle.addEventListener("click", async () => {
+
+    // evita clique se desconectado
+    if (main.classList.contains("main-disabled")) return;
 
     const lampRef = ref(db, `lamp${lampId}`);
 
@@ -170,6 +184,9 @@ lampSections.forEach((section, index) => {
 
     button.addEventListener("click", async () => {
 
+      // evita clique se desconectado
+      if (main.classList.contains("main-disabled")) return;
+
       const led = button.querySelector(".led-timer");
 
       const alreadyActive = led.classList.contains("ativo");
@@ -216,12 +233,14 @@ lampSections.forEach((section, index) => {
 
     const value = snapshot.val();
 
+    // limpa todos
     section.querySelectorAll(".led-timer").forEach((led) => {
 
       led.classList.remove("ativo");
 
     });
 
+    // ativa correspondente
     if (value === 10) {
 
       timerButtons[0]
