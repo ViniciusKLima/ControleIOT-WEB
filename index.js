@@ -9,9 +9,9 @@ import {
   get,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
-// =========================
-// CONFIG FIREBASE
-// =========================
+// ========================================
+// CONFIG
+// ========================================
 
 const firebaseConfig = {
   apiKey: "AIzaSyAR9zltVe8E45Sk3WcVnmXZ42BZRoqycHc",
@@ -23,17 +23,17 @@ const firebaseConfig = {
   appId: "1:730183038031:web:c6a8b0d818de96bb84a63a",
 };
 
-// =========================
+// ========================================
 // FIREBASE
-// =========================
+// ========================================
 
 const app = initializeApp(firebaseConfig);
 
 const db = getDatabase(app);
 
-// =========================
+// ========================================
 // ELEMENTOS
-// =========================
+// ========================================
 
 const main = document.querySelector("main");
 
@@ -41,16 +41,16 @@ const lampSections = document.querySelectorAll(".lamp");
 
 const statusESP = document.querySelector(".status-esp32 span");
 
-// =========================
-// STATUS ESP32
-// =========================
+// ========================================
+// STATUS
+// ========================================
 
 let lastSeen = 0;
 
-// escuta heartbeat
+// recebe heartbeat
 onValue(ref(db, "lastSeen"), (snapshot) => {
 
-  const value = snapshot.val();
+  const value = Number(snapshot.val());
 
   if (!value) return;
 
@@ -61,13 +61,13 @@ onValue(ref(db, "lastSeen"), (snapshot) => {
 // verifica conexão
 setInterval(() => {
 
-  // timestamp atual em segundos
   const now = Math.floor(Date.now() / 1000);
 
   const diff = now - lastSeen;
 
-  // conectado
-  if (diff <= 5) {
+  const connected = diff <= 5;
+
+  if (connected) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -77,7 +77,6 @@ setInterval(() => {
 
   }
 
-  // desconectado
   else {
 
     statusESP.textContent = "DESCONECTADO";
@@ -90,9 +89,9 @@ setInterval(() => {
 
 }, 1000);
 
-// =========================
+// ========================================
 // LÂMPADAS
-// =========================
+// ========================================
 
 lampSections.forEach((section, index) => {
 
@@ -102,10 +101,7 @@ lampSections.forEach((section, index) => {
 
   const timerButtons = section.querySelectorAll(".btn-timer");
 
-  // =========================
-  // TOGGLE CLICK
-  // =========================
-
+  // TOGGLE
   toggle.addEventListener("click", async () => {
 
     if (main.classList.contains("main-disabled")) return;
@@ -120,7 +116,6 @@ lampSections.forEach((section, index) => {
 
     await set(lampRef, newState);
 
-    // desligou -> remove timer
     if (!newState) {
 
       await set(ref(db, `lamp${lampId}Timer`), 0);
@@ -129,10 +124,7 @@ lampSections.forEach((section, index) => {
 
   });
 
-  // =========================
   // SINCRONIZA TOGGLE
-  // =========================
-
   onValue(ref(db, `lamp${lampId}`), (snapshot) => {
 
     const state = snapshot.val();
@@ -141,24 +133,17 @@ lampSections.forEach((section, index) => {
 
       toggle.classList.add("toggle-ativo");
 
-    } else {
+    }
+
+    else {
 
       toggle.classList.remove("toggle-ativo");
-
-      section.querySelectorAll(".led-timer").forEach((led) => {
-
-        led.classList.remove("ativo");
-
-      });
 
     }
 
   });
 
-  // =========================
-  // BOTÕES TIMER
-  // =========================
-
+  // TIMER BUTTONS
   timerButtons.forEach((button) => {
 
     button.addEventListener("click", async () => {
@@ -169,14 +154,12 @@ lampSections.forEach((section, index) => {
 
       const alreadyActive = led.classList.contains("ativo");
 
-      // remove todos
       section.querySelectorAll(".led-timer").forEach((l) => {
 
         l.classList.remove("ativo");
 
       });
 
-      // clicou no mesmo
       if (alreadyActive) {
 
         await set(ref(db, `lamp${lampId}Timer`), 0);
@@ -203,10 +186,7 @@ lampSections.forEach((section, index) => {
 
   });
 
-  // =========================
-  // SINCRONIZA TIMER VISUAL
-  // =========================
-
+  // SINCRONIZA TIMER
   onValue(ref(db, `lamp${lampId}Timer`), (snapshot) => {
 
     const value = snapshot.val();
