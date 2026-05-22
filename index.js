@@ -42,53 +42,14 @@ const lampSections = document.querySelectorAll(".lamp");
 const statusESP = document.querySelector(".status-esp32 span");
 
 // =========================
-// STATUS INICIAL
-// =========================
-
-statusESP.textContent = "DESCONECTADO";
-
-statusESP.style.color = "#ff3b3b";
-
-main.classList.add("main-disabled");
-
-// =========================
 // STATUS ESP32
 // =========================
 
-let lastHeartbeat = null;
+onValue(ref(db, "espOnline"), (snapshot) => {
 
-// escuta heartbeat do ESP
-onValue(ref(db, "lastSeen"), (snapshot) => {
+  const online = snapshot.val();
 
-  const value = snapshot.val();
-
-  if (value === null) return;
-
-  // recebeu heartbeat
-  lastHeartbeat = Date.now();
-
-});
-
-// verifica conexão
-setInterval(() => {
-
-  // nunca conectou
-  if (lastHeartbeat === null) {
-
-    statusESP.textContent = "DESCONECTADO";
-
-    statusESP.style.color = "#ff3b3b";
-
-    main.classList.add("main-disabled");
-
-    return;
-
-  }
-
-  const diff = Date.now() - lastHeartbeat;
-
-  // conectado
-  if (diff <= 5000) {
+  if (online) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -96,10 +57,7 @@ setInterval(() => {
 
     main.classList.remove("main-disabled");
 
-  }
-
-  // desconectado
-  else {
+  } else {
 
     statusESP.textContent = "DESCONECTADO";
 
@@ -109,7 +67,7 @@ setInterval(() => {
 
   }
 
-}, 1000);
+});
 
 // =========================
 // LÂMPADAS
@@ -129,10 +87,7 @@ lampSections.forEach((section, index) => {
 
   toggle.addEventListener("click", async () => {
 
-    // bloqueia se ESP offline
-    if (main.classList.contains("main-disabled")) {
-      return;
-    }
+    if (main.classList.contains("main-disabled")) return;
 
     const lampRef = ref(db, `lamp${lampId}`);
 
@@ -169,7 +124,6 @@ lampSections.forEach((section, index) => {
 
       toggle.classList.remove("toggle-ativo");
 
-      // remove leds timers
       section.querySelectorAll(".led-timer").forEach((led) => {
 
         led.classList.remove("ativo");
@@ -181,17 +135,14 @@ lampSections.forEach((section, index) => {
   });
 
   // =========================
-  // TIMER BUTTONS
+  // BOTÕES TIMER
   // =========================
 
   timerButtons.forEach((button) => {
 
     button.addEventListener("click", async () => {
 
-      // bloqueia se offline
-      if (main.classList.contains("main-disabled")) {
-        return;
-      }
+      if (main.classList.contains("main-disabled")) return;
 
       const led = button.querySelector(".led-timer");
 
@@ -239,7 +190,6 @@ lampSections.forEach((section, index) => {
 
     const value = snapshot.val();
 
-    // remove todos
     section.querySelectorAll(".led-timer").forEach((led) => {
 
       led.classList.remove("ativo");
