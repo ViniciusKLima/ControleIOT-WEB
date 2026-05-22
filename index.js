@@ -45,11 +45,29 @@ const statusESP = document.querySelector(".status-esp32 span");
 // STATUS ESP32
 // =========================
 
-onValue(ref(db, "espOnline"), (snapshot) => {
+let lastSeen = 0;
 
-  const online = snapshot.val();
+// escuta heartbeat
+onValue(ref(db, "lastSeen"), (snapshot) => {
 
-  if (online) {
+  const value = snapshot.val();
+
+  if (!value) return;
+
+  lastSeen = value;
+
+});
+
+// verifica conexão
+setInterval(() => {
+
+  // timestamp atual em segundos
+  const now = Math.floor(Date.now() / 1000);
+
+  const diff = now - lastSeen;
+
+  // conectado
+  if (diff <= 5) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -57,7 +75,10 @@ onValue(ref(db, "espOnline"), (snapshot) => {
 
     main.classList.remove("main-disabled");
 
-  } else {
+  }
+
+  // desconectado
+  else {
 
     statusESP.textContent = "DESCONECTADO";
 
@@ -67,7 +88,7 @@ onValue(ref(db, "espOnline"), (snapshot) => {
 
   }
 
-});
+}, 1000);
 
 // =========================
 // LÂMPADAS
