@@ -55,25 +55,25 @@ main.classList.add("main-disabled");
 // STATUS ESP32
 // =========================
 
-// guarda último heartbeat
-let lastESPUpdate = 0;
+let lastHeartbeat = null;
 
 // escuta heartbeat do ESP
 onValue(ref(db, "lastSeen"), (snapshot) => {
 
   const value = snapshot.val();
 
-  if (!value) return;
+  if (value === null) return;
 
-  lastESPUpdate = value;
+  // recebeu heartbeat
+  lastHeartbeat = Date.now();
 
 });
 
 // verifica conexão
 setInterval(() => {
 
-  // nunca recebeu heartbeat
-  if (!lastESPUpdate) {
+  // nunca conectou
+  if (lastHeartbeat === null) {
 
     statusESP.textContent = "DESCONECTADO";
 
@@ -85,12 +85,10 @@ setInterval(() => {
 
   }
 
-  const now = Date.now();
+  const diff = Date.now() - lastHeartbeat;
 
-  const diff = now - lastESPUpdate;
-
-  // tolerância maior pra evitar bug em celular lento
-  if (diff <= 10000) {
+  // conectado
+  if (diff <= 5000) {
 
     statusESP.textContent = "CONECTADO";
 
@@ -98,7 +96,10 @@ setInterval(() => {
 
     main.classList.remove("main-disabled");
 
-  } else {
+  }
+
+  // desconectado
+  else {
 
     statusESP.textContent = "DESCONECTADO";
 
@@ -108,7 +109,7 @@ setInterval(() => {
 
   }
 
-}, 2000);
+}, 1000);
 
 // =========================
 // LÂMPADAS
@@ -128,8 +129,10 @@ lampSections.forEach((section, index) => {
 
   toggle.addEventListener("click", async () => {
 
-    // evita clique se desconectado
-    if (main.classList.contains("main-disabled")) return;
+    // bloqueia se ESP offline
+    if (main.classList.contains("main-disabled")) {
+      return;
+    }
 
     const lampRef = ref(db, `lamp${lampId}`);
 
@@ -166,6 +169,7 @@ lampSections.forEach((section, index) => {
 
       toggle.classList.remove("toggle-ativo");
 
+      // remove leds timers
       section.querySelectorAll(".led-timer").forEach((led) => {
 
         led.classList.remove("ativo");
@@ -177,15 +181,17 @@ lampSections.forEach((section, index) => {
   });
 
   // =========================
-  // BOTÕES TIMER
+  // TIMER BUTTONS
   // =========================
 
   timerButtons.forEach((button) => {
 
     button.addEventListener("click", async () => {
 
-      // evita clique se desconectado
-      if (main.classList.contains("main-disabled")) return;
+      // bloqueia se offline
+      if (main.classList.contains("main-disabled")) {
+        return;
+      }
 
       const led = button.querySelector(".led-timer");
 
@@ -233,14 +239,13 @@ lampSections.forEach((section, index) => {
 
     const value = snapshot.val();
 
-    // limpa todos
+    // remove todos
     section.querySelectorAll(".led-timer").forEach((led) => {
 
       led.classList.remove("ativo");
 
     });
 
-    // ativa correspondente
     if (value === 10) {
 
       timerButtons[0]
