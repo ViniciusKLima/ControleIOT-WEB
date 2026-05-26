@@ -1,4 +1,7 @@
-// Firebase
+// ========================================
+// FIREBASE IMPORTS
+// ========================================
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
@@ -10,7 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // ========================================
-// CONFIG
+// FIREBASE CONFIG
 // ========================================
 
 const firebaseConfig = {
@@ -24,7 +27,7 @@ const firebaseConfig = {
 };
 
 // ========================================
-// FIREBASE
+// FIREBASE INIT
 // ========================================
 
 const app = initializeApp(firebaseConfig);
@@ -32,7 +35,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ========================================
-// ELEMENTOS
+// ELEMENTOS HTML
 // ========================================
 
 const main = document.querySelector("main");
@@ -42,12 +45,39 @@ const lampSections = document.querySelectorAll(".lamp");
 const statusESP = document.querySelector(".status-esp32 span");
 
 // ========================================
-// STATUS
+// STATUS INICIAL
 // ========================================
 
+statusESP.textContent = "DESCONECTADO";
+
+statusESP.style.color = "#ff3b3b";
+
+main.classList.add("main-disabled");
+
+// ========================================
+// STATUS ESP32
+// ========================================
+
+// timestamp enviado pelo ESP32
 let lastSeen = 0;
 
-// recebe heartbeat
+// status salvo no Firebase
+let espOnline = false;
+
+// ========================================
+// LEITURA STATUS ONLINE
+// ========================================
+
+onValue(ref(db, "espOnline"), (snapshot) => {
+
+  espOnline = snapshot.val() === true;
+
+});
+
+// ========================================
+// LEITURA HEARTBEAT
+// ========================================
+
 onValue(ref(db, "lastSeen"), (snapshot) => {
 
   const value = Number(snapshot.val());
@@ -58,14 +88,28 @@ onValue(ref(db, "lastSeen"), (snapshot) => {
 
 });
 
-// verifica conexão
+// ========================================
+// VERIFICA CONEXÃO
+// ========================================
+
 setInterval(() => {
 
+  // horário atual em segundos
   const now = Math.floor(Date.now() / 1000);
 
+  // diferença do heartbeat
   const diff = now - lastSeen;
 
-  const connected = diff <= 5;
+  // só conecta se:
+  // 1 - espOnline for true
+  // 2 - heartbeat recente
+  const connected =
+    espOnline &&
+    diff <= 8;
+
+  // ====================================
+  // ONLINE
+  // ====================================
 
   if (connected) {
 
@@ -76,6 +120,10 @@ setInterval(() => {
     main.classList.remove("main-disabled");
 
   }
+
+  // ====================================
+  // OFFLINE
+  // ====================================
 
   else {
 
@@ -99,32 +147,56 @@ lampSections.forEach((section, index) => {
 
   const toggle = section.querySelector(".toggle");
 
-  const timerButtons = section.querySelectorAll(".btn-timer");
+  const timerButtons =
+    section.querySelectorAll(".btn-timer");
 
-  // TOGGLE
+  // ====================================
+  // TOGGLE CLICK
+  // ====================================
+
   toggle.addEventListener("click", async () => {
 
-    if (main.classList.contains("main-disabled")) return;
+    // bloqueia se offline
+    if (main.classList.contains("main-disabled")) {
 
-    const lampRef = ref(db, `lamp${lampId}`);
+      return;
 
-    const snapshot = await get(lampRef);
+    }
 
-    const currentState = snapshot.val();
+    const lampRef =
+      ref(db, `lamp${lampId}`);
 
-    const newState = !currentState;
+    const snapshot =
+      await get(lampRef);
 
-    await set(lampRef, newState);
+    const currentState =
+      snapshot.val();
 
+    const newState =
+      !currentState;
+
+    // altera estado
+    await set(
+      lampRef,
+      newState
+    );
+
+    // remove timer ao desligar
     if (!newState) {
 
-      await set(ref(db, `lamp${lampId}Timer`), 0);
+      await set(
+        ref(db, `lamp${lampId}Timer`),
+        0
+      );
 
     }
 
   });
 
+  // ====================================
   // SINCRONIZA TOGGLE
+  // ====================================
+
   onValue(ref(db, `lamp${lampId}`), (snapshot) => {
 
     const state = snapshot.val();
@@ -143,59 +215,101 @@ lampSections.forEach((section, index) => {
 
   });
 
-  // TIMER BUTTONS
+  // ====================================
+  // BOTÕES TIMER
+  // ====================================
+
   timerButtons.forEach((button) => {
 
     button.addEventListener("click", async () => {
 
-      if (main.classList.contains("main-disabled")) return;
-
-      const led = button.querySelector(".led-timer");
-
-      const alreadyActive = led.classList.contains("ativo");
-
-      section.querySelectorAll(".led-timer").forEach((l) => {
-
-        l.classList.remove("ativo");
-
-      });
-
-      if (alreadyActive) {
-
-        await set(ref(db, `lamp${lampId}Timer`), 0);
+      // bloqueia offline
+      if (main.classList.contains("main-disabled")) {
 
         return;
 
       }
 
+      const led =
+        button.querySelector(".led-timer");
+
+      const alreadyActive =
+        led.classList.contains("ativo");
+
+      // remove todos
+      section.querySelectorAll(".led-timer")
+      .forEach((l) => {
+
+        l.classList.remove("ativo");
+
+      });
+
+      // desativa timer atual
+      if (alreadyActive) {
+
+        await set(
+          ref(db, `lamp${lampId}Timer`),
+          0
+        );
+
+        return;
+
+      }
+
+      // ativa led visual
       led.classList.add("ativo");
 
-      const text = button.querySelector("p").textContent;
+      // pega texto
+      const text =
+        button.querySelector("p").textContent;
 
       let seconds = 0;
 
-      if (text === "10s") seconds = 10;
+      if (text === "10s") {
 
-      if (text === "30s") seconds = 30;
+        seconds = 10;
 
-      if (text === "1min") seconds = 60;
+      }
 
-      await set(ref(db, `lamp${lampId}Timer`), seconds);
+      if (text === "30s") {
+
+        seconds = 30;
+
+      }
+
+      if (text === "1min") {
+
+        seconds = 60;
+
+      }
+
+      // envia timer
+      await set(
+        ref(db, `lamp${lampId}Timer`),
+        seconds
+      );
 
     });
 
   });
 
+  // ====================================
   // SINCRONIZA TIMER
+  // ====================================
+
   onValue(ref(db, `lamp${lampId}Timer`), (snapshot) => {
 
     const value = snapshot.val();
 
-    section.querySelectorAll(".led-timer").forEach((led) => {
+    // limpa leds
+    section.querySelectorAll(".led-timer")
+    .forEach((led) => {
 
       led.classList.remove("ativo");
 
     });
+
+    // ativa led correto
 
     if (value === 10) {
 
