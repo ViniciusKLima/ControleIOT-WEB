@@ -40,9 +40,11 @@ const db = getDatabase(app);
 
 const main = document.querySelector("main");
 
-const lampSections = document.querySelectorAll(".lamp");
+const lampSections =
+  document.querySelectorAll(".lamp");
 
-const statusESP = document.querySelector(".status-esp32 span");
+const statusESP =
+  document.querySelector(".status-esp32 span");
 
 // ========================================
 // STATUS INICIAL
@@ -58,84 +60,61 @@ main.classList.add("main-disabled");
 // STATUS ESP32
 // ========================================
 
-// timestamp enviado pelo ESP32
-let lastSeen = 0;
+// backend atualiza isso
+// true = online
+// false = offline
 
-// status salvo no Firebase
 let espOnline = false;
 
 // ========================================
 // LEITURA STATUS ONLINE
 // ========================================
 
-onValue(ref(db, "espOnline"), (snapshot) => {
+onValue(
+  ref(db, "espOnline"),
+  (snapshot) => {
 
-  espOnline = snapshot.val() === true;
+    espOnline =
+      snapshot.val() === true;
 
-});
+    // =========================
+    // ONLINE
+    // =========================
 
-// ========================================
-// LEITURA HEARTBEAT
-// ========================================
+    if (espOnline) {
 
-onValue(ref(db, "lastSeen"), (snapshot) => {
+      statusESP.textContent =
+        "CONECTADO";
 
-  const value = Number(snapshot.val());
+      statusESP.style.color =
+        "#00ff88";
 
-  if (!value) return;
+      main.classList.remove(
+        "main-disabled"
+      );
 
-  lastSeen = value;
+    }
 
-});
+    // =========================
+    // OFFLINE
+    // =========================
 
-// ========================================
-// VERIFICA CONEXÃO
-// ========================================
+    else {
 
-setInterval(() => {
+      statusESP.textContent =
+        "DESCONECTADO";
 
-  // horário atual em segundos
-  const now = Math.floor(Date.now() / 1000);
+      statusESP.style.color =
+        "#ff3b3b";
 
-  // diferença do heartbeat
-  const diff = now - lastSeen;
+      main.classList.add(
+        "main-disabled"
+      );
 
-  // só conecta se:
-  // 1 - espOnline for true
-  // 2 - heartbeat recente
-  const connected =
-    espOnline &&
-    diff <= 8;
-
-  // ====================================
-  // ONLINE
-  // ====================================
-
-  if (connected) {
-
-    statusESP.textContent = "CONECTADO";
-
-    statusESP.style.color = "#00ff88";
-
-    main.classList.remove("main-disabled");
+    }
 
   }
-
-  // ====================================
-  // OFFLINE
-  // ====================================
-
-  else {
-
-    statusESP.textContent = "DESCONECTADO";
-
-    statusESP.style.color = "#ff3b3b";
-
-    main.classList.add("main-disabled");
-
-  }
-
-}, 1000);
+);
 
 // ========================================
 // LÂMPADAS
@@ -145,7 +124,8 @@ lampSections.forEach((section, index) => {
 
   const lampId = index + 1;
 
-  const toggle = section.querySelector(".toggle");
+  const toggle =
+    section.querySelector(".toggle");
 
   const timerButtons =
     section.querySelectorAll(".btn-timer");
@@ -154,66 +134,84 @@ lampSections.forEach((section, index) => {
   // TOGGLE CLICK
   // ====================================
 
-  toggle.addEventListener("click", async () => {
+  toggle.addEventListener(
+    "click",
+    async () => {
 
-    // bloqueia se offline
-    if (main.classList.contains("main-disabled")) {
+      // bloqueia offline
+      if (
+        main.classList.contains(
+          "main-disabled"
+        )
+      ) {
 
-      return;
+        return;
 
-    }
+      }
 
-    const lampRef =
-      ref(db, `lamp${lampId}`);
+      const lampRef =
+        ref(db, `lamp${lampId}`);
 
-    const snapshot =
-      await get(lampRef);
+      const snapshot =
+        await get(lampRef);
 
-    const currentState =
-      snapshot.val();
+      const currentState =
+        snapshot.val();
 
-    const newState =
-      !currentState;
+      const newState =
+        !currentState;
 
-    // altera estado
-    await set(
-      lampRef,
-      newState
-    );
-
-    // remove timer ao desligar
-    if (!newState) {
-
+      // altera estado
       await set(
-        ref(db, `lamp${lampId}Timer`),
-        0
+        lampRef,
+        newState
       );
 
-    }
+      // remove timer ao desligar
+      if (!newState) {
 
-  });
+        await set(
+          ref(
+            db,
+            `lamp${lampId}Timer`
+          ),
+          0
+        );
+
+      }
+
+    }
+  );
 
   // ====================================
   // SINCRONIZA TOGGLE
   // ====================================
 
-  onValue(ref(db, `lamp${lampId}`), (snapshot) => {
+  onValue(
+    ref(db, `lamp${lampId}`),
+    (snapshot) => {
 
-    const state = snapshot.val();
+      const state =
+        snapshot.val();
 
-    if (state) {
+      if (state) {
 
-      toggle.classList.add("toggle-ativo");
+        toggle.classList.add(
+          "toggle-ativo"
+        );
+
+      }
+
+      else {
+
+        toggle.classList.remove(
+          "toggle-ativo"
+        );
+
+      }
 
     }
-
-    else {
-
-      toggle.classList.remove("toggle-ativo");
-
-    }
-
-  });
+  );
 
   // ====================================
   // BOTÕES TIMER
@@ -221,75 +219,101 @@ lampSections.forEach((section, index) => {
 
   timerButtons.forEach((button) => {
 
-    button.addEventListener("click", async () => {
+    button.addEventListener(
+      "click",
+      async () => {
 
-      // bloqueia offline
-      if (main.classList.contains("main-disabled")) {
+        // bloqueia offline
+        if (
+          main.classList.contains(
+            "main-disabled"
+          )
+        ) {
 
-        return;
+          return;
 
-      }
+        }
 
-      const led =
-        button.querySelector(".led-timer");
+        const led =
+          button.querySelector(
+            ".led-timer"
+          );
 
-      const alreadyActive =
-        led.classList.contains("ativo");
+        const alreadyActive =
+          led.classList.contains(
+            "ativo"
+          );
 
-      // remove todos
-      section.querySelectorAll(".led-timer")
-      .forEach((l) => {
+        // limpa leds
+        section
+          .querySelectorAll(
+            ".led-timer"
+          )
+          .forEach((l) => {
 
-        l.classList.remove("ativo");
+            l.classList.remove(
+              "ativo"
+            );
 
-      });
+          });
 
-      // desativa timer atual
-      if (alreadyActive) {
+        // desativa timer atual
+        if (alreadyActive) {
 
-        await set(
-          ref(db, `lamp${lampId}Timer`),
-          0
+          await set(
+            ref(
+              db,
+              `lamp${lampId}Timer`
+            ),
+            0
+          );
+
+          return;
+
+        }
+
+        // ativa led visual
+        led.classList.add(
+          "ativo"
         );
 
-        return;
+        // pega texto
+        const text =
+          button.querySelector(
+            "p"
+          ).textContent;
+
+        let seconds = 0;
+
+        if (text === "10s") {
+
+          seconds = 10;
+
+        }
+
+        if (text === "30s") {
+
+          seconds = 30;
+
+        }
+
+        if (text === "1min") {
+
+          seconds = 60;
+
+        }
+
+        // envia timer
+        await set(
+          ref(
+            db,
+            `lamp${lampId}Timer`
+          ),
+          seconds
+        );
 
       }
-
-      // ativa led visual
-      led.classList.add("ativo");
-
-      // pega texto
-      const text =
-        button.querySelector("p").textContent;
-
-      let seconds = 0;
-
-      if (text === "10s") {
-
-        seconds = 10;
-
-      }
-
-      if (text === "30s") {
-
-        seconds = 30;
-
-      }
-
-      if (text === "1min") {
-
-        seconds = 60;
-
-      }
-
-      // envia timer
-      await set(
-        ref(db, `lamp${lampId}Timer`),
-        seconds
-      );
-
-    });
+    );
 
   });
 
@@ -297,44 +321,65 @@ lampSections.forEach((section, index) => {
   // SINCRONIZA TIMER
   // ====================================
 
-  onValue(ref(db, `lamp${lampId}Timer`), (snapshot) => {
+  onValue(
+    ref(db, `lamp${lampId}Timer`),
+    (snapshot) => {
 
-    const value = snapshot.val();
+      const value =
+        snapshot.val();
 
-    // limpa leds
-    section.querySelectorAll(".led-timer")
-    .forEach((led) => {
+      // limpa leds
+      section
+        .querySelectorAll(
+          ".led-timer"
+        )
+        .forEach((led) => {
 
-      led.classList.remove("ativo");
+          led.classList.remove(
+            "ativo"
+          );
 
-    });
+        });
 
-    // ativa led correto
+      // ativa led correto
 
-    if (value === 10) {
+      if (value === 10) {
 
-      timerButtons[0]
-        .querySelector(".led-timer")
-        .classList.add("ativo");
+        timerButtons[0]
+          .querySelector(
+            ".led-timer"
+          )
+          .classList.add(
+            "ativo"
+          );
+
+      }
+
+      if (value === 30) {
+
+        timerButtons[1]
+          .querySelector(
+            ".led-timer"
+          )
+          .classList.add(
+            "ativo"
+          );
+
+      }
+
+      if (value === 60) {
+
+        timerButtons[2]
+          .querySelector(
+            ".led-timer"
+          )
+          .classList.add(
+            "ativo"
+          );
+
+      }
 
     }
-
-    if (value === 30) {
-
-      timerButtons[1]
-        .querySelector(".led-timer")
-        .classList.add("ativo");
-
-    }
-
-    if (value === 60) {
-
-      timerButtons[2]
-        .querySelector(".led-timer")
-        .classList.add("ativo");
-
-    }
-
-  });
+  );
 
 });

@@ -75,7 +75,7 @@ main {
 
     .key-toggle {
       background-color: #eaeaea;
-      background-image: url("Frame 1.svg");
+      background-image: url("img/lampOFF.svg");
       background-size: 55%;
       background-position: center;
       background-repeat: no-repeat;
@@ -106,7 +106,7 @@ main {
     }
 
     .key-toggle {
-      background-image: url("Frame 2.svg");
+      background-image: url("img/lampON.svg");
       left: calc(100% - 147.5px);
       box-shadow:
         5px 2px 10px #00000025,
