@@ -1,4 +1,5 @@
 node_modules
+.vscode
 backend/node_modules/
 .env
 backend/chave-firebase.json
